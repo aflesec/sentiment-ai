@@ -25,7 +25,7 @@ pipeline {
                   -v $WORKSPACE:/app \
                   -w /app \
                   python:3.12-slim \
-                  sh -c "pip install flake8 && flake8 src"
+                  sh -c "ls -la /app && pip install flake8 && flake8 src"
                 '''
                 
             }
