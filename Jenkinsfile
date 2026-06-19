@@ -17,16 +17,23 @@ pipeline {
                 sh 'git log --oneline -5'
             }
         }
+        
+        stage('Build') {
+    steps {
+        sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+    }
+}
 
         stage('Lint') {
             steps {
-                sh '''
+                /*sh '''
                 docker run --rm \
                   -v $WORKSPACE:/app \
                   -w /app \
                   python:3.12-slim \
                   sh -c "ls -la /app && pip install flake8 && flake8 src"
-                '''
+                '''*/
+                sh "docker run --rm ${IMAGE_NAME}:${IMAGE_TAG} sh -c 'pip install flake8 && flake8 src'"
                 
             }
 
@@ -38,11 +45,11 @@ pipeline {
             
         }
 
-        stage('Build & Test') {
-            steps {
-                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+        //stage('Build & Test') {
+           // steps {
+             //   sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
 
-                sh """
+                /*sh """
                 docker run --rm \
                   ${IMAGE_NAME}:${IMAGE_TAG} \
                   pytest tests/ -v \
@@ -50,13 +57,24 @@ pipeline {
                   --cov-report=xml:coverage.xml \
                   --cov-report=term-missing \
                   --cov-fail-under=70
+                """*/
+           // }
+
+            //post {
+              //  failure {
+                //    echo 'Tests échoués ou couverture inférieure à 70 %.'
+                //}
+            //}
+        //}
+        stage('Test') {
+            steps {
+                sh """
+                docker run --rm ${IMAGE_NAME}:${IMAGE_TAG} \
+                pytest tests/ -v --cov=src --cov-report=term-missing --cov-fail-under=70
                 """
             }
-
             post {
-                failure {
-                    echo 'Tests échoués ou couverture inférieure à 70 %.'
-                }
+                failure { echo 'Tests échoués ou couverture inférieure à 70 %.' }
             }
         }
 
