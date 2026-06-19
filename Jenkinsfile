@@ -9,28 +9,32 @@ pipeline {
 
     stages {
 
-        //stage('Checkout') {
-          //  steps {
-            //    checkout scm
-              //  echo "Branche : ${env.BRANCH_NAME}"
-                //echo "Commit : ${env.GIT_COMMIT}"
-                //sh 'git log --oneline -5'
-            //}
-        //}
+        stage('Checkout') {
+            steps {
+                checkout scm
+                echo "Branche : ${env.BRANCH_NAME}"
+                echo "Commit : ${env.GIT_COMMIT}"
+                sh 'git log --oneline -5'
+            }
+        }
 
         stage('Lint') {
             steps {
                 sh '''
-                ls -la /app
-                ls -la /app/src
                 docker run --rm \
-                  --volume "$WORKSPACE:/app" \
+                  -v $WORKSPACE:/app \
                   -w /app \
                   python:3.12-slim \
-                  sh -c "pip install flake8 && flake8 src/ --max-line-length=100"
+                  sh -c "pip install flake8 && flake8 src"
                 '''
                 
             }
+
+            post {
+                failure {
+                    echo 'Lint échoué. Veuillez corriger les erreurs.'
+                }
+}
             
         }
 
@@ -70,8 +74,15 @@ pipeline {
                     )
                 ]) {
 
+                    //sh """
+                    //echo \$REGISTRY_PASS | docker login ghcr.io -u \$REGISTRY_USER --password-stdin
+                    //docker push ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
+                    //docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${REGISTRY}/${IMAGE_NAME}:latest
+                    //docker push ${REGISTRY}/${IMAGE_NAME}:latest
+                    //"""
                     sh """
                     echo \$REGISTRY_PASS | docker login ghcr.io -u \$REGISTRY_USER --password-stdin
+                    docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
                     docker push ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
                     docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${REGISTRY}/${IMAGE_NAME}:latest
                     docker push ${REGISTRY}/${IMAGE_NAME}:latest
