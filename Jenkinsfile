@@ -9,25 +9,29 @@ pipeline {
 
     stages {
 
-        stage('Checkout') {
-            steps {
-                checkout scm
-                echo "Branche : ${env.BRANCH_NAME}"
-                echo "Commit : ${env.GIT_COMMIT}"
-                sh 'git log --oneline -5'
-            }
-        }
+        //stage('Checkout') {
+          //  steps {
+            //    checkout scm
+              //  echo "Branche : ${env.BRANCH_NAME}"
+                //echo "Commit : ${env.GIT_COMMIT}"
+                //sh 'git log --oneline -5'
+            //}
+        //}
 
         stage('Lint') {
             steps {
                 sh '''
+                ls -la /app
+                ls -la /app/src
                 docker run --rm \
                   --volume "$WORKSPACE:/app" \
                   -w /app \
                   python:3.12-slim \
                   sh -c "pip install flake8 && flake8 src/ --max-line-length=100"
                 '''
+                
             }
+            
         }
 
         stage('Build & Test') {
