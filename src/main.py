@@ -7,6 +7,7 @@ app = FastAPI(title="SentimentAI", version="0.1.0")
 # Le modèle est chargé une seule fois au démarrage du serveur
 model = SentimentModel()
 
+# build de test n°2 - vérification du pipeline
 
 @app.get("/health")
 def health():
