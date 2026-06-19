@@ -8,6 +8,7 @@ app = FastAPI(title="SentimentAI", version="0.1.0")
 # Le modèle est chargé une seule fois au démarrage du serveur
 model = SentimentModel()
 
+
 @app.get("/health")
 def health():
     """Endpoint de healthcheck utilisé par Docker et les load balancers."""
