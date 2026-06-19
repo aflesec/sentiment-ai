@@ -18,6 +18,17 @@ pipeline {
             }
         }
 
+        stage('Debug Workspace') {
+    steps {
+        sh '''
+        echo "WORKSPACE=$WORKSPACE"
+        pwd
+        ls -la
+        find . -maxdepth 2
+        '''
+    }
+}
+
         stage('Lint') {
     steps {
         sh '''
