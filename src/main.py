@@ -8,7 +8,6 @@ app = FastAPI(title="SentimentAI", version="0.1.0")
 model = SentimentModel()
 
 # build de test n°2 - vérification du pipeline
-
 @app.get("/health")
 def health():
     """Endpoint de healthcheck utilisé par Docker et les load balancers."""
