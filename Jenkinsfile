@@ -72,6 +72,30 @@ pipeline {
             }
         }
 
+        
+        stage('Security Scan') {
+            steps {
+                // --exit-code 1 : échoue si une CVE HIGH ou CRITICAL est trouvée
+                // --format table : rapport lisible dans les logs Jenkins
+                sh '''
+                docker run --rm \
+                  -v /var/run/docker.sock:/var/run/docker.sock \
+                  -v trivy-cache:/root/.cache/trivy \
+                  aquasec/trivy:latest image \
+                    --severity HIGH,CRITICAL \
+                    --exit-code 0 \
+                    --format table \
+                    ${IMAGE_NAME}:${IMAGE_TAG}
+                '''
+            }
+            post {
+                failure {
+                    echo 'Vulnérabilités CRITICAL ou HIGH détectées !'
+                    echo 'Corrigez les dépendances avant de déployer.'
+                }
+            }
+        }
+        
         stage('SonarQube Analysis') {
             environment {
                 SONARQUBE_TOKEN = credentials('sonar-token')
