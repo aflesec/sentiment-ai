@@ -83,7 +83,7 @@ pipeline {
                   -v trivy-cache:/root/.cache/trivy \
                   aquasec/trivy:latest image \
                     --severity HIGH,CRITICAL \
-                    --exit-code 0 \
+                    --exit-code 1 \
                     --format table \
                     ${IMAGE_NAME}:${IMAGE_TAG}
                 '''
