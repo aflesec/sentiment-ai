@@ -112,7 +112,7 @@ pipeline {
                       sonar-scanner \
                         -Dsonar.projectKey=sentiment-ai \
                         -Dsonar.sources=src \
-                        -Dsonar.python.coverage.reportPaths=coverage.xml
+                        -Dsonar.python.coverage.reportPaths=coverage.xml \
                         -Dsonar.working.directory="$WORKSPACE/.scannerwork" \
                         -Dsonar.scanner.metadataFilePath="$WORKSPACE/.scannerwork/report-task.txt"
                     '''
