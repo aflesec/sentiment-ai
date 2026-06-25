@@ -169,7 +169,7 @@ pipeline {
                 branch 'main'
             }
             steps {
-                sh 'curl -f http://localhost:8001/health || exit 1'
+                sh 'curl -f http://sentiment-staging:8000/health || exit 1'
             }
         }
 
