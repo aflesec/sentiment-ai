@@ -1,4 +1,4 @@
-// Jenkinsfile -- pipeline 10 stages complet
+// Jenkinsfile -- pipeline CI/CD complet (11 stages)
 pipeline {
     agent any
 
@@ -65,6 +65,10 @@ pipeline {
                 docker cp test-runner:/tmp/coverage.xml ./coverage.xml 2>/dev/null || true
                 docker rm -f test-runner 2>/dev/null || true
 
+                # Corrige les chemins du conteneur (/app/src) vers le workspace (src)
+                # pour que SonarQube puisse importer la couverture
+                sed -i "s|/app/src|src|g; s|/app|.|g" coverage.xml
+
                 exit $TEST_EXIT_CODE
                 '''
             }
@@ -95,6 +99,7 @@ pipeline {
                 }
             }
         }
+
         stage('SonarQube Analysis') {
             environment {
                 SONARQUBE_TOKEN = credentials('sonar-token')
@@ -174,40 +179,40 @@ pipeline {
         }
 
         stage('Smoke Test') {
-    when {
-        branch 'main'
-    }
-    steps {
-        sh '''
-        echo "Attente démarrage (10s)..."
-        sleep 10
+            when {
+                branch 'main'
+            }
+            steps {
+                sh '''
+                echo "Attente démarrage (10s)..."
+                sleep 10
 
-        # 1. L'app répond
-        curl -f http://sentiment-staging:8000/health || exit 1
-        echo "/health OK"
+                # 1. L'app répond
+                curl -f http://sentiment-staging:8000/health || exit 1
+                echo "/health OK"
 
-        # 2. Les métriques sont exposées
-        curl -s http://sentiment-staging:8000/metrics | grep -q sentiment_predictions_total || exit 1
-        echo "/metrics OK -- métriques SentimentAI présentes"
+                # 2. Les métriques sont exposées
+                curl -s http://sentiment-staging:8000/metrics | grep -q sentiment_predictions_total || exit 1
+                echo "/metrics OK -- métriques SentimentAI présentes"
 
-        # 3. Prometheus scrape l'app
-        sleep 20   # attendre au moins 1 scrape (15s)
-        curl -s "http://prometheus:9090/api/v1/query?query=up{job='sentiment-ai'}" | grep -q '"value":.*1' || exit 1
-        echo "Prometheus scrape sentiment-ai : UP"
+                # 3. Prometheus scrape l'app
+                sleep 20   # attendre au moins 1 scrape (15s)
+                curl -s "http://prometheus:9090/api/v1/query?query=up{job='sentiment-ai'}" | grep -q '"value":.*1' || exit 1
+                echo "Prometheus scrape sentiment-ai : UP"
 
-        # 4. Grafana répond
-        curl -f http://grafana:3000/api/health || exit 1
-        echo "Grafana OK"
-        '''
-    }
-    post {
-        failure {
-            sh 'docker logs prometheus || true'
-            sh 'docker logs sentiment-staging || true'
-            echo 'Smoke Test KO -- voir logs ci-dessus'
+                # 4. Grafana répond
+                curl -f http://grafana:3000/api/health || exit 1
+                echo "Grafana OK"
+                '''
+            }
+            post {
+                failure {
+                    sh 'docker logs prometheus || true'
+                    sh 'docker logs sentiment-staging || true'
+                    echo 'Smoke Test KO -- voir logs ci-dessus'
+                }
+            }
         }
-    }
-}
 
     }
 
