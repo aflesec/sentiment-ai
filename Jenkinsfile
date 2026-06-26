@@ -174,7 +174,11 @@ pipeline {
                 branch 'main'
             }
             steps {
-                sh 'curl -f http://sentiment-staging:8000/health || exit 1'
+                sh '''
+                echo "Attente du démarrage de l'application..."
+                sleep 5
+                curl -f --retry 10 --retry-delay 3 --retry-connrefused http://sentiment-staging:8000/health
+                '''
             }
         }
 
